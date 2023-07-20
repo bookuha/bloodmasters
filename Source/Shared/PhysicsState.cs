@@ -10,7 +10,6 @@
 using System;
 using System.Drawing;
 using System.Collections;
-using System.Collections.Generic;
 using CodeImp;
 
 #if CLIENT
@@ -184,8 +183,8 @@ namespace CodeImp.Bloodmasters
 			if(stepup) stepheight = Consts.MAX_STEP_HEIGHT; else stepheight = 0f;
 			
 			// Make collisions array
-			var collisions = new List<Collision>();
-
+			ArrayList colls = new ArrayList();
+			
 			// Player collision detection?
 			if(clientcollisions)
 			{
@@ -196,7 +195,7 @@ namespace CodeImp.Bloodmasters
 					if((plr != null) && (plr.State != null) && (plr != thisclient) && plr.State.blocking)
 					{
 						// Make object collision
-						collisions.Add(new PlayerCollision(plr, pos, sv, radius, isplayer));
+						colls.Add(new PlayerCollision(plr, pos, sv, radius, isplayer));
 					}
 				}
 			}
@@ -210,11 +209,11 @@ namespace CodeImp.Bloodmasters
 				{
 					// Get the linedef
 					Linedef ld = (Linedef)lines[i];
-
+					
 					// Make possible collision
 					WallCollision wc = new WallCollision(ld, pos, sv, radius, height, stepheight, isplayer);
-					collisions.Add(wc);
-
+					colls.Add(wc);
+					
 					// Return the crossing sidedef, if crossing
 					if(!wc.IsColliding && wc.IsCrossing) crossline = wc.CrossSide;
 				}
@@ -222,19 +221,19 @@ namespace CodeImp.Bloodmasters
 			
 			// Sort the collisions by order in which we will collide with them
 			// The collisions we dont actually collide with will be sorted to the end
-			collisions.Sort();
-
+			colls.Sort();
+			
 			// DEBUG:
 			//string wallslist = "";
 			//foreach(Collision c in colls) if(c is WallCollision) wallslist += (c as WallCollision).Line.Index + "(" + c.Distance + "), ";
 			//General.DisplayAndLog("Sorted walls: " + wallslist);
 			
 			// Go for all possible collisions
-			for(int i = 0; i < collisions.Count; i++)
+			for(int i = 0; i < colls.Count; i++)
 			{
 				// Get the collisions
-				Collision coll = collisions[i];
-
+				Collision coll = (Collision)colls[i];
+				
 				// For testing the collision detection
 				if(showcol == null) showcol = coll;
 				
@@ -275,17 +274,17 @@ namespace CodeImp.Bloodmasters
 						//General.DisplayAndLog("New velocity: " + vel.x + ", " + vel.y);
 						
 						// Go for all following collisions to update
-						for(int k = i + 1; k < collisions.Count; k++)
+						for(int k = i + 1; k < colls.Count; k++)
 						{
 							// Get old collision
-							Collision oldcoll = collisions[k];
-
+							Collision oldcoll = (Collision)colls[k];
+							
 							// Update collision
-							collisions[k] = oldcoll.Update(pos, sv);
+							colls[k] = oldcoll.Update(pos, sv);
 						}
 						
 						// Sort the lines again, except for those already tested
-						if(i < collisions.Count - 1) collisions.Sort(i + 1, collisions.Count - (i + 1), null);
+						if(i < colls.Count - 1) colls.Sort(i + 1, colls.Count - (i + 1), null);
 					}
 					else
 					{
